@@ -2,7 +2,10 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 import logging
+from fastapi.responses import JSONResponse
+from fastapi import status
 
+from models import ErrorResponse
 # Global FastAPI app instance
 app = None
 
@@ -76,7 +79,8 @@ def _add_middleware(app: FastAPI):
         """
         Global exception handler for the API.
         """
-        logger.error(f"An error occurred: {exc}")
+        error_logger = logging.getLogger(__name__)
+        error_logger.error(f"An error occurred: {exc}")
         return JSONResponse(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             content=ErrorResponse(detail=str(exc)).dict()
@@ -94,3 +98,14 @@ def get_app() -> FastAPI:
 
 # Create the global app instance
 app = create_app()
+
+import threading
+import webbrowser
+
+def open_swagger():
+    import time
+    time.sleep(1)  # Wait for server to start
+    webbrowser.open("http://localhost:8000/docs")
+
+if __name__ == "__main__":
+    threading.Thread(target=open_swagger).start()
